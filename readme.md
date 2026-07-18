@@ -18,6 +18,22 @@ This module contains a variety of helpful resources, including:
 Get started at [spinningup.openai.com](https://spinningup.openai.com)!
 
 
+Local development
+-----------------
+
+This fork supports Python 3.10 through 3.12 with current Gymnasium,
+TensorFlow 2 compatibility mode, and PyTorch releases. Install and test it
+with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv sync
+uv run pytest
+```
+
+Optional environment families can be installed with `uv sync --extra box2d`,
+`uv sync --extra mujoco`, or `uv sync --extra atari`.
+
+
 Citing Spinning Up
 ------------------
 

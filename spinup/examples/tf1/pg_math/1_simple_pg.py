@@ -1,7 +1,7 @@
-import tensorflow as tf
+from spinup.utils.tf_compat import tf
 import numpy as np
-import gym
-from gym.spaces import Discrete, Box
+from gymnasium.spaces import Discrete, Box
+from spinup.utils.gym_compat import make_env
 
 def mlp(x, sizes, activation=tf.tanh, output_activation=None):
     # Build a feedforward neural network.
@@ -9,11 +9,11 @@ def mlp(x, sizes, activation=tf.tanh, output_activation=None):
         x = tf.layers.dense(x, units=size, activation=activation)
     return tf.layers.dense(x, units=sizes[-1], activation=output_activation)
 
-def train(env_name='CartPole-v0', hidden_sizes=[32], lr=1e-2, 
+def train(env_name='CartPole-v1', hidden_sizes=[32], lr=1e-2,
           epochs=50, batch_size=5000, render=False):
 
     # make environment, check spaces, get obs / act dims
-    env = gym.make(env_name)
+    env = make_env(env_name)
     assert isinstance(env.observation_space, Box), \
         "This example only works for envs with continuous state spaces."
     assert isinstance(env.action_space, Discrete), \
@@ -114,7 +114,7 @@ def train(env_name='CartPole-v0', hidden_sizes=[32], lr=1e-2,
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env_name', '--env', type=str, default='CartPole-v0')
+    parser.add_argument('--env_name', '--env', type=str, default='CartPole-v1')
     parser.add_argument('--render', action='store_true')
     parser.add_argument('--lr', type=float, default=1e-2)
     args = parser.parse_args()

@@ -1,12 +1,13 @@
 import numpy as np
 import torch
 from torch.optim import Adam
-import gym
+import gymnasium as gym
 import time
 import spinup.algos.pytorch.ppo.core as core
 from spinup.utils.logx import EpochLogger
 from spinup.utils.mpi_pytorch import setup_pytorch_for_mpi, sync_params, mpi_avg_grads
 from spinup.utils.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num_procs
+from spinup.utils.gym_compat import adapt_env
 
 
 class PPOBuffer:
@@ -96,7 +97,7 @@ def ppo(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 
     Args:
         env_fn : A function which creates a copy of the environment.
-            The environment must satisfy the OpenAI Gym API.
+            The environment must satisfy the Gymnasium API.
 
         actor_critic: The constructor method for a PyTorch Module with a 
             ``step`` method, an ``act`` method, a ``pi`` module, and a ``v`` 
@@ -163,7 +164,7 @@ def ppo(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
             still profiting (improving the objective function)? The new policy 
             can still go farther than the clip_ratio says, but it doesn't help
             on the objective anymore. (Usually small, 0.1 to 0.3.) Typically
-            denoted by :math:`\epsilon`. 
+            denoted by :math:`\\epsilon`.
 
         pi_lr (float): Learning rate for policy optimizer.
 
@@ -205,7 +206,7 @@ def ppo(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
     np.random.seed(seed)
 
     # Instantiate environment
-    env = env_fn()
+    env = adapt_env(env_fn(), seed=seed)
     obs_dim = env.observation_space.shape
     act_dim = env.action_space.shape
 
@@ -299,7 +300,7 @@ def ppo(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
         for t in range(local_steps_per_epoch):
             a, v, logp = ac.step(torch.as_tensor(o, dtype=torch.float32))
 
-            next_o, r, d, _ = env.step(a)
+            next_o, r, d, info = env.step(a)
             ep_ret += r
             ep_len += 1
 
@@ -310,7 +311,7 @@ def ppo(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
             # Update obs (critical!)
             o = next_o
 
-            timeout = ep_len == max_ep_len
+            timeout = ep_len == max_ep_len or info.get("TimeLimit.truncated", False)
             terminal = d or timeout
             epoch_ended = t==local_steps_per_epoch-1
 
@@ -356,7 +357,7 @@ def ppo(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='HalfCheetah-v2')
+    parser.add_argument('--env', type=str, default='HalfCheetah-v5')
     parser.add_argument('--hid', type=int, default=64)
     parser.add_argument('--l', type=int, default=2)
     parser.add_argument('--gamma', type=float, default=0.99)

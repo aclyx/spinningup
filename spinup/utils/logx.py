@@ -9,7 +9,7 @@ import json
 import joblib
 import shutil
 import numpy as np
-import tensorflow as tf
+from spinup.utils.tf_compat import tf
 import torch
 import os.path as osp, time, atexit, os
 import warnings

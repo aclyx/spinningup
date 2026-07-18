@@ -2,9 +2,10 @@ import time
 import joblib
 import os
 import os.path as osp
-import tensorflow as tf
+from spinup.utils.tf_compat import tf
 import torch
 from spinup import EpochLogger
+from spinup.utils.gym_compat import adapt_env
 from spinup.utils.logx import restore_tf_graph
 
 
@@ -95,7 +96,7 @@ def load_pytorch_policy(fpath, itr, deterministic=False):
     fname = osp.join(fpath, 'pyt_save', 'model'+itr+'.pt')
     print('\n\nLoading from %s.\n\n'%fname)
 
-    model = torch.load(fname)
+    model = torch.load(fname, map_location="cpu", weights_only=False)
 
     # make function for producing an action given a single state
     def get_action(x):
@@ -113,6 +114,8 @@ def run_policy(env, get_action, max_ep_len=None, num_episodes=100, render=True):
         "Environment not found!\n\n It looks like the environment wasn't saved, " + \
         "and we can't run the agent in it. :( \n\n Check out the readthedocs " + \
         "page on Experiment Outputs for how to handle this situation."
+
+    env = adapt_env(env)
 
     logger = EpochLogger()
     o, r, d, ep_ret, ep_len, n = env.reset(), 0, False, 0, 0, 0

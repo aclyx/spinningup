@@ -24,36 +24,8 @@ import sys
 dirname = os.path.dirname
 sys.path.insert(0, dirname(dirname(__file__)))
 
-# Mock mpi4py to get around having to install it on RTD server (which fails)
-# Also to mock PyTorch, because it is too large for the RTD server to download
-from unittest.mock import MagicMock
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
-MOCK_MODULES = ['mpi4py', 
-                'torch', 
-                'torch.optim', 
-                'torch.nn',
-                'torch.distributions',
-                'torch.distributions.normal',
-                'torch.distributions.categorical',
-                'torch.nn.functional',
-                ]
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
 # Finish imports
 import spinup
-from recommonmark.parser import CommonMarkParser
-
-
-source_parsers = {
-    '.md': CommonMarkParser,
-}
-
-
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -63,16 +35,12 @@ source_parsers = {
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.imgmath',
+extensions = ['sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon']
 
 #'sphinx.ext.mathjax', ??
-
-# imgmath settings
-imgmath_image_format = 'svg'
-imgmath_font_size = 14
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -80,8 +48,7 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
-# source_suffix = '.rst'
+source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -105,7 +72,7 @@ release = ''
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -143,7 +110,7 @@ html_theme_options = {
     'logo_only': True
 }
 #html_favicon = 'openai-favicon2_32x32.ico'
-html_favicon = 'openai_icon.ico'
+html_favicon = '_static/openai_icon.ico'
 
 # -- Options for HTMLHelp output ------------------------------------------
 
@@ -238,4 +205,4 @@ texinfo_documents = [
 
 
 def setup(app):
-    app.add_stylesheet('css/modify.css')
+    app.add_css_file('css/modify.css')

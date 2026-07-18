@@ -3,10 +3,11 @@ import itertools
 import numpy as np
 import torch
 from torch.optim import Adam
-import gym
+import gymnasium as gym
 import time
 import spinup.algos.pytorch.td3.core as core
 from spinup.utils.logx import EpochLogger
+from spinup.utils.gym_compat import adapt_env
 
 
 class ReplayBuffer:
@@ -54,7 +55,7 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 
     Args:
         env_fn : A function which creates a copy of the environment.
-            The environment must satisfy the OpenAI Gym API.
+            The environment must satisfy the Gymnasium API.
 
         actor_critic: The constructor method for a PyTorch Module with an ``act`` 
             method, a ``pi`` module, a ``q1`` module, and a ``q2`` module.
@@ -152,7 +153,8 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    env, test_env = env_fn(), env_fn()
+    env = adapt_env(env_fn(), seed=seed)
+    test_env = adapt_env(env_fn(), seed=seed + 10000)
     obs_dim = env.observation_space.shape
     act_dim = env.action_space.shape[0]
 
@@ -295,24 +297,24 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
             a = env.action_space.sample()
 
         # Step the env
-        o2, r, d, _ = env.step(a)
+        o2, r, d, info = env.step(a)
         ep_ret += r
         ep_len += 1
 
         # Ignore the "done" signal if it comes from hitting the time
         # horizon (that is, when it's an artificial terminal signal
         # that isn't based on the agent's state)
-        d = False if ep_len==max_ep_len else d
+        timeout = ep_len == max_ep_len or info.get("TimeLimit.truncated", False)
 
         # Store experience to replay buffer
-        replay_buffer.store(o, a, r, o2, d)
+        replay_buffer.store(o, a, r, o2, False if timeout else d)
 
         # Super critical, easy to overlook step: make sure to update 
         # most recent observation!
         o = o2
 
         # End of trajectory handling
-        if d or (ep_len == max_ep_len):
+        if d or timeout:
             logger.store(EpRet=ep_ret, EpLen=ep_len)
             o, ep_ret, ep_len = env.reset(), 0, 0
 
@@ -350,7 +352,7 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='HalfCheetah-v2')
+    parser.add_argument('--env', type=str, default='HalfCheetah-v5')
     parser.add_argument('--hid', type=int, default=256)
     parser.add_argument('--l', type=int, default=2)
     parser.add_argument('--gamma', type=float, default=0.99)

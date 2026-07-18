@@ -1,4 +1,4 @@
-import tensorflow as tf
+from spinup.utils.tf_compat import tf
 import numpy as np
 from spinup.exercises.tf1.problem_set_1 import exercise1_1
 
@@ -93,14 +93,14 @@ if __name__ == '__main__':
 
     from spinup import ppo_tf1 as ppo
     from spinup.exercises.common import print_result
-    import gym
+    import gymnasium as gym
     import os
     import pandas as pd
     import psutil
     import time
 
     logdir = "/tmp/experiments/%i"%int(time.time())
-    ppo(env_fn = lambda : gym.make('InvertedPendulum-v2'),
+    ppo(env_fn = lambda : gym.make('InvertedPendulum-v5'),
         ac_kwargs=dict(policy=mlp_gaussian_policy, hidden_sizes=(64,)),
         steps_per_epoch=4000, epochs=20, logger_kwargs=dict(output_dir=logdir))
 

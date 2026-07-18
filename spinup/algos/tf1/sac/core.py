@@ -1,5 +1,5 @@
 import numpy as np
-import tensorflow as tf
+from spinup.utils.tf_compat import tf
 
 EPS = 1e-8
 

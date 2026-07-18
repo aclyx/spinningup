@@ -1,5 +1,5 @@
 import numpy as np
-import tensorflow as tf
+from spinup.utils.tf_compat import tf
 import time
 from spinup.utils.logx import EpochLogger
 
