@@ -5,11 +5,13 @@ import os.path as osp
 from spinup.utils.tf_compat import tf
 import torch
 from spinup import EpochLogger
-from spinup.utils.gym_compat import adapt_env
+from spinup.utils.gym_compat import adapt_env, with_render_mode
 from spinup.utils.logx import restore_tf_graph
 
 
-def load_policy_and_env(fpath, itr='last', deterministic=False):
+def load_policy_and_env(
+    fpath, itr='last', deterministic=False, render_mode=None
+):
     """
     Load a policy from save, whether it's TF or PyTorch, along with RL env.
 
@@ -59,7 +61,10 @@ def load_policy_and_env(fpath, itr='last', deterministic=False):
     try:
         state = joblib.load(osp.join(fpath, 'vars'+itr+'.pkl'))
         env = state['env']
-    except:
+        if render_mode is not None:
+            env = with_render_mode(env, render_mode)
+    except Exception as error:
+        print("Warning: could not load saved environment: %s" % error)
         env = None
 
     return env, get_action
@@ -150,7 +155,11 @@ if __name__ == '__main__':
     parser.add_argument('--itr', '-i', type=int, default=-1)
     parser.add_argument('--deterministic', '-d', action='store_true')
     args = parser.parse_args()
-    env, get_action = load_policy_and_env(args.fpath, 
-                                          args.itr if args.itr >=0 else 'last',
-                                          args.deterministic)
-    run_policy(env, get_action, args.len, args.episodes, not(args.norender))
+    render = not args.norender
+    env, get_action = load_policy_and_env(
+        args.fpath,
+        args.itr if args.itr >= 0 else 'last',
+        args.deterministic,
+        render_mode="human" if render else None,
+    )
+    run_policy(env, get_action, args.len, args.episodes, render)
