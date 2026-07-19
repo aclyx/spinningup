@@ -16,6 +16,10 @@
   box2d`, `uv sync --extra atari`, or `uv sync --extra mujoco`. MuJoCo uses the
   maintained `mujoco` Python package through Gymnasium; it does not require
   `mujoco-py` or a license key.
+- `uv sync` performs an exact synchronization and removes dependencies from
+  extras omitted from the command. When multiple environment families are
+  needed, include every extra together, for example:
+  `uv sync --extra box2d --extra mujoco`.
 
 ## Modern compatibility boundaries
 
